@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@rocambille/elo",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Enrich your objects with Elo rating.",
   "main": "index.js",
   "scripts": {
