@@ -5,7 +5,7 @@ Enrich your objects with [Elo rating](https://en.wikipedia.org/wiki/Elo_rating_s
 ## Usage
 
 ```js
-import elo from "elo";
+import elo from "@rocambille/elo";
 
 const player = elo();
 
