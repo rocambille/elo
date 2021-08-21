@@ -1,0 +1,25 @@
+{
+  "type": "module",
+  "name": "@rocambille/elo",
+  "version": "1.0.0",
+  "description": "Enrich your objects with Elo rating.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rocambille/elo.git"
+  },
+  "keywords": [
+    "elo",
+    "rating",
+    "ranking"
+  ],
+  "author": "rocambille <rocambille@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rocambille/elo/issues"
+  },
+  "homepage": "https://github.com/rocambille/elo#readme"
+}
