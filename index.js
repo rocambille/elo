@@ -24,9 +24,9 @@ const elo =
       ...config,
     };
 
-    a.elo = a.elo ?? initialElo;
+    a.elo = a[fieldNames.elo] ?? initialElo;
 
-    const oddsAgainst = ({ elo: eloB = initialElo }) => {
+    const oddsAgainst = ({ [fieldNames.elo]: eloB = initialElo }) => {
       const clamp = (value) => ({
         between: (lower, upper) => Math.max(Math.min(value, upper), lower),
       });
@@ -39,13 +39,13 @@ const elo =
     const resolveMatch =
       (didAWin) =>
       ({ ...b }) => {
-        a.matchCount = a.matchCount ?? 0;
+        a.matchCount = a[fieldNames.matchCount] ?? 0;
         a.k = kGenerator(a);
         a.didWin = didAWin;
         a.p = oddsAgainst(b);
 
-        b.elo = b.elo ?? initialElo;
-        b.matchCount = b.matchCount ?? 0;
+        b.elo = b[fieldNames.elo] ?? initialElo;
+        b.matchCount = b[fieldNames.matchCount] ?? 0;
         b.k = kGenerator(b);
         b.didWin = 1 - a.didWin;
         b.p = 1 - a.p;
