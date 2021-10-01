@@ -8,12 +8,21 @@ const defaultConfig = {
 
     return 24;
   },
+  fieldNames: {
+    elo: "elo",
+    matchCount: "matchCount",
+    lastPlayedAt: "lastPlayedAt",
+    lastDelta: "lastDelta",
+  },
 };
 
 const elo =
   (config = {}) =>
   ({ ...a }) => {
-    const { initialElo, DMax, kGenerator } = { ...defaultConfig, ...config };
+    const { initialElo, DMax, kGenerator, fieldNames } = {
+      ...defaultConfig,
+      ...config,
+    };
 
     a.elo = a.elo ?? initialElo;
 
@@ -45,10 +54,10 @@ const elo =
           const newElo = oldElo + k * (didWin - p);
           return {
             ...rest,
-            elo: newElo,
-            matchCount: matchCount + 1,
-            lastDelta: newElo - oldElo,
-            lastPlayedAt: Date.now(),
+            [fieldNames.elo]: newElo,
+            [fieldNames.matchCount]: matchCount + 1,
+            [fieldNames.lastDelta]: newElo - oldElo,
+            [fieldNames.lastPlayedAt]: Date.now(),
           };
         };
 

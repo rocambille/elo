@@ -62,6 +62,12 @@ const player = elo({
 
     return 24;
   },
+  fieldNames: {
+    elo: "elo",
+    matchCount: "matchCount",
+    lastPlayedAt: "lastPlayedAt",
+    lastDelta: "lastDelta",
+  },
 });
 ```
 
