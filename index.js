@@ -64,11 +64,22 @@ const elo =
         return [update(a), update(b)];
       };
 
+    const reset = () => {
+      delete a.elo;
+      delete a[fieldNames.elo];
+      delete a[fieldNames.matchCount];
+      delete a[fieldNames.lastDelta];
+      delete a[fieldNames.lastPlayedAt];
+
+      return a;
+    };
+
     return {
       wins: resolveMatch(1),
       ties: resolveMatch(0.5),
       loses: resolveMatch(0),
       oddsAgainst,
+      reset,
     };
   };
 
