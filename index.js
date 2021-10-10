@@ -19,19 +19,23 @@ const defaultConfig = {
 const elo =
   (config = {}) =>
   ({ ...a }) => {
-    const { initialElo, DMax, kGenerator, fieldNames } = {
+    const { initialElo, DMax, kGenerator } = {
       ...defaultConfig,
       ...config,
     };
+    const fieldNames = {
+      ...defaultConfig.fieldNames,
+      ...config.fieldNames,
+    };
 
-    a.elo = a[fieldNames.elo] ?? initialElo;
+    a[fieldNames.elo] = a[fieldNames.elo] ?? initialElo;
 
     const oddsAgainst = ({ [fieldNames.elo]: eloB = initialElo }) => {
       const clamp = (value) => ({
         between: (lower, upper) => Math.max(Math.min(value, upper), lower),
       });
 
-      const D = clamp(a.elo - eloB).between(-DMax, DMax);
+      const D = clamp(a[fieldNames.elo] - eloB).between(-DMax, DMax);
 
       return 1 / (1 + 10 ** (-D / DMax));
     };
@@ -39,18 +43,31 @@ const elo =
     const resolveMatch =
       (didAWin) =>
       ({ ...b }) => {
-        a.matchCount = a[fieldNames.matchCount] ?? 0;
-        a.k = kGenerator(a);
-        a.didWin = didAWin;
-        a.p = oddsAgainst(b);
+        a[fieldNames.matchCount] = a[fieldNames.matchCount] ?? 0;
 
-        b.elo = b[fieldNames.elo] ?? initialElo;
-        b.matchCount = b[fieldNames.matchCount] ?? 0;
-        b.k = kGenerator(b);
-        b.didWin = 1 - a.didWin;
-        b.p = 1 - a.p;
+        const metaA = {
+          k: kGenerator(a),
+          didWin: didAWin,
+          p: oddsAgainst(b),
+        };
 
-        const update = ({ elo: oldElo, matchCount, k, didWin, p, ...rest }) => {
+        b[fieldNames.elo] = b[fieldNames.elo] ?? initialElo;
+        b[fieldNames.matchCount] = b[fieldNames.matchCount] ?? 0;
+
+        const metaB = {
+          k: kGenerator(b),
+          didWin: 1 - didAWin,
+          p: 1 - metaA.p,
+        };
+
+        const update = (
+          {
+            [fieldNames.elo]: oldElo,
+            [fieldNames.matchCount]: matchCount,
+            ...rest
+          },
+          { k, didWin, p }
+        ) => {
           const newElo = oldElo + k * (didWin - p);
           return {
             ...rest,
@@ -61,11 +78,10 @@ const elo =
           };
         };
 
-        return [update(a), update(b)];
+        return [update(a, metaA), update(b, metaB)];
       };
 
     const reset = () => {
-      delete a.elo;
       delete a[fieldNames.elo];
       delete a[fieldNames.matchCount];
       delete a[fieldNames.lastDelta];
