@@ -2,15 +2,15 @@
   "name": "@rocambille/elo",
   "version": "1.2.2",
   "description": "Enrich your objects with Elo rating.",
-  "main": "./dist/index-cjs.js",
-  "module": "./dist/index-esm.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "exports": {
-    "import": "./dist/index-esm.js",
-    "require": "./dist/index-cjs.js"
+    "import": "./dist/index.mjs",
+    "require": "./dist/index.cjs"
   },
   "scripts": {
-    "build": "tsc && mv ./dist/index.js ./dist/index-cjs.js && tsc -m es6 && mv ./dist/index.js ./dist/index-esm.js",
+    "build": "tsc && mv ./dist/index.js ./dist/index.cjs && tsc -m es6 && mv ./dist/index.js ./dist/index.mjs",
     "prepublish": "npm run build",
     "test": "npx jest"
   },
