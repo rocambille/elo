@@ -7,7 +7,7 @@
   "types": "./dist/index.d.ts",
   "exports": {
     "import": "./dist/index-esm.js",
-    "require": "./dist/index-cm.js"
+    "require": "./dist/index-cjs.js"
   },
   "scripts": {
     "build": "tsc && mv ./dist/index.js ./dist/index-cjs.js && tsc -m es6 && mv ./dist/index.js ./dist/index-esm.js",
