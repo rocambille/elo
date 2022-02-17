@@ -1,6 +1,6 @@
 {
   "name": "@rocambille/elo",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Enrich your objects with Elo rating.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
