@@ -2,6 +2,20 @@
   "name": "@rocambille/elo",
   "version": "1.2.4",
   "description": "Enrich your objects with Elo rating.",
+  "keywords": [
+    "elo",
+    "rating",
+    "ranking"
+  ],
+  "homepage": "https://github.com/rocambille/elo#readme",
+  "bugs": {
+    "url": "https://github.com/rocambille/elo/issues"
+  },
+  "license": "MIT",
+  "author": "rocambille <rocambille@gmail.com>",
+  "files": [
+    "dist"
+  ],
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -9,26 +23,15 @@
     "import": "./dist/index.mjs",
     "require": "./dist/index.cjs"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rocambille/elo.git"
+  },
   "scripts": {
     "build": "tsc && mv ./dist/index.js ./dist/index.cjs && tsc -m es6 && mv ./dist/index.js ./dist/index.mjs",
     "prepublish": "npm run build",
     "test": "npx jest"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/rocambille/elo.git"
-  },
-  "keywords": [
-    "elo",
-    "rating",
-    "ranking"
-  ],
-  "author": "rocambille <rocambille@gmail.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/rocambille/elo/issues"
-  },
-  "homepage": "https://github.com/rocambille/elo#readme",
   "devDependencies": {
     "@types/jest": "^27.4.0",
     "jest": "^27.4.5",

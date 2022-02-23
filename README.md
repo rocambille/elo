@@ -1,8 +1,11 @@
 # Elo
 
+![npm (scoped)](https://img.shields.io/npm/v/@rocambille/elo)
+![npm bundle size (scoped)](https://img.shields.io/bundlephobia/minzip/@rocambille/elo)
+
 Enrich your objects with [Elo rating](https://en.wikipedia.org/wiki/Elo_rating_system).
 
-## Usage
+## Basic usage
 
 ```js
 import elo from "@rocambille/elo";
@@ -46,9 +49,56 @@ Note that the elo module keeps `foo.a` and `bar.z` untouched.
 It enriches the objects with Elo stuff (rating, match count, last delta and last play timestamp).
 This is useful if you want to add elo rating on existing data, e.g. coming from an API.
 
-## Configuration
+## Advanced usage
 
-You can pass a configuration object as parameter to the `elo` function.
+You can manage a whole collection using the `elo.Pool` factory as follows:
+
+```js
+import elo from "@rocambille/elo";
+
+let pool = elo.Pool([{ a: 42 }, { z: 43 }, { x: 44 }]);
+
+const odds = pool.player(0).oddsAgainst(1);
+
+console.log(`player 0 has a ${odds * 100}% chance of winning against player 1`);
+
+pool = pool.player(0).wins(1);
+// or pool = pool.player(0).loses(1);
+// or pool = pool.player(0).ties(1);
+
+console.log(pool);
+```
+
+Should print something like this:
+
+```bash
+player 0 has a 50% chance of winning against player 1
+[
+  {
+    a: 42,
+    elo: 1516,
+    matchCount: 1,
+    lastDelta: 16,
+    lastPlayedAt: 1629554837908
+  },
+  {
+    z: 43,
+    elo: 1484,
+    matchCount: 1,
+    lastDelta: -16,
+    lastPlayedAt: 1629554837908
+  },
+  {
+    x: 44,
+    elo: 1500,
+    matchCount: 0,
+    lastDelta: NaN,
+    lastPlayedAt: NaN
+  }
+]
+```
+
+You can pass a configuration object as parameter to the `elo` function, or as second parameter to the `elo.Pool` factory.
 Here is an example with the default values:
 
 ```js
