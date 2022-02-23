@@ -22,7 +22,7 @@ interface EloConfig {
   kGenerator: (eloObject: any) => number;
 }
 
-const defaultConfig: EloConfig = {
+const defaultConfig: Readonly<EloConfig> = {
   DMax: 400,
   fieldNames: {
     elo: "elo",
@@ -40,7 +40,7 @@ const defaultConfig: EloConfig = {
   },
 };
 
-const elo = (config: Partial<EloConfig> = {}) => {
+const elo = (config: Readonly<Partial<EloConfig>> = {}) => {
   const { initialElo, DMax, kGenerator } = {
     ...defaultConfig,
     ...config,
@@ -90,13 +90,13 @@ const elo = (config: Partial<EloConfig> = {}) => {
         ...b,
       };
 
-      const metaA: EloMeta = {
+      const metaA: Readonly<EloMeta> = {
         k: kGenerator(eloA),
         didWin: didAWin,
         p: oddsAgainst(eloB),
       };
 
-      const metaB: EloMeta = {
+      const metaB: Readonly<EloMeta> = {
         k: kGenerator(eloB),
         didWin: 1 - didAWin,
         p: 1 - metaA.p,
@@ -108,7 +108,7 @@ const elo = (config: Partial<EloConfig> = {}) => {
           [fieldNames.matchCount]: matchCount,
           ...rest
         },
-        { k, didWin, p }: EloMeta,
+        { k, didWin, p }: Readonly<EloMeta>,
         playedAt: number
       ) => {
         const newElo = oldElo + k * (didWin - p);
@@ -149,5 +149,54 @@ const elo = (config: Partial<EloConfig> = {}) => {
     };
   };
 };
+
+class PoolHandler<T extends object> {
+  player: ReturnType<typeof elo>;
+
+  constructor(config: Readonly<Partial<EloConfig>>) {
+    this.player = elo(config);
+  }
+
+  get(target: T, prop: string | symbol, receiver: any) {
+    if (prop === "player") {
+      return (indexA: keyof T) => {
+        const playerA = this.player(target[indexA] as Object);
+
+        const resolveMatch = (
+          indexB: keyof T,
+          resolver: keyof Omit<typeof playerA, "oddsAgainst" | "reset">
+        ) => {
+          const [newA, newB] = playerA[resolver](target[indexB] as Object);
+          target[indexA] = newA as unknown as T[keyof T];
+          target[indexB] = newB as unknown as T[keyof T];
+
+          return receiver;
+        };
+
+        return {
+          wins: (indexB: keyof T) => resolveMatch(indexB, "wins"),
+          ties: (indexB: keyof T) => resolveMatch(indexB, "ties"),
+          loses: (indexB: keyof T) => resolveMatch(indexB, "loses"),
+          oddsAgainst: (indexB: keyof T): number => {
+            return playerA.oddsAgainst(target[indexB] as Object);
+          },
+          reset: () => {
+            target[indexA] = playerA.reset() as unknown as T[keyof T];
+
+            return receiver;
+          },
+        };
+      };
+    }
+
+    return Reflect.get(target, prop, receiver);
+  }
+}
+
+elo.Pool = <T extends object>(
+  iterable: T,
+  config: Readonly<Partial<EloConfig>> = {}
+): T & { player: Function } =>
+  new Proxy(iterable, new PoolHandler<T>(config)) as T & { player: Function };
 
 export default elo;
