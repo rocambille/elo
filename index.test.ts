@@ -80,47 +80,47 @@ describe("first match", () => {
   test("wins", () => {
     const [fooWithElo, barWithElo] = player(foo).wins(bar);
 
-    expect(fooWithElo.elo).toBeCloseTo(1516);
-    expect(fooWithElo.lastDelta).toBeCloseTo(16);
-    expect(fooWithElo.lastPlayedAt).toBeDefined();
-    expect(fooWithElo.matchCount).toBe(1);
+    expect(fooWithElo.elo.rating).toBeCloseTo(1516);
+    expect(fooWithElo.elo.lastDelta).toBeCloseTo(16);
+    expect(fooWithElo.elo.lastPlayedAt).toBeDefined();
+    expect(fooWithElo.elo.matchCount).toBe(1);
 
-    expect(barWithElo.elo).toBeCloseTo(1484);
-    expect(barWithElo.lastDelta).toBeCloseTo(-16);
-    expect(barWithElo.lastPlayedAt).toBeDefined();
-    expect(barWithElo.matchCount).toBe(1);
+    expect(barWithElo.elo.rating).toBeCloseTo(1484);
+    expect(barWithElo.elo.lastDelta).toBeCloseTo(-16);
+    expect(barWithElo.elo.lastPlayedAt).toBeDefined();
+    expect(barWithElo.elo.matchCount).toBe(1);
 
-    expect(fooWithElo.lastPlayedAt).toBe(barWithElo.lastPlayedAt);
+    expect(fooWithElo.elo.lastPlayedAt).toBe(barWithElo.elo.lastPlayedAt);
   });
   test("loses", () => {
     const [fooWithElo, barWithElo] = player(foo).loses(bar);
 
-    expect(fooWithElo.elo).toBeCloseTo(1484);
-    expect(fooWithElo.lastDelta).toBeCloseTo(-16);
-    expect(fooWithElo.lastPlayedAt).toBeDefined();
-    expect(fooWithElo.matchCount).toBe(1);
+    expect(fooWithElo.elo.rating).toBeCloseTo(1484);
+    expect(fooWithElo.elo.lastDelta).toBeCloseTo(-16);
+    expect(fooWithElo.elo.lastPlayedAt).toBeDefined();
+    expect(fooWithElo.elo.matchCount).toBe(1);
 
-    expect(barWithElo.elo).toBeCloseTo(1516);
-    expect(barWithElo.lastDelta).toBeCloseTo(16);
-    expect(barWithElo.lastPlayedAt).toBeDefined();
-    expect(barWithElo.matchCount).toBe(1);
+    expect(barWithElo.elo.rating).toBeCloseTo(1516);
+    expect(barWithElo.elo.lastDelta).toBeCloseTo(16);
+    expect(barWithElo.elo.lastPlayedAt).toBeDefined();
+    expect(barWithElo.elo.matchCount).toBe(1);
 
-    expect(fooWithElo.lastPlayedAt).toBe(barWithElo.lastPlayedAt);
+    expect(fooWithElo.elo.lastPlayedAt).toBe(barWithElo.elo.lastPlayedAt);
   });
   test("ties", () => {
     const [fooWithElo, barWithElo] = player(foo).ties(bar);
 
-    expect(fooWithElo.elo).toBeCloseTo(1500);
-    expect(fooWithElo.lastDelta).toBeCloseTo(0);
-    expect(fooWithElo.lastPlayedAt).toBeDefined();
-    expect(fooWithElo.matchCount).toBe(1);
+    expect(fooWithElo.elo.rating).toBeCloseTo(1500);
+    expect(fooWithElo.elo.lastDelta).toBeCloseTo(0);
+    expect(fooWithElo.elo.lastPlayedAt).toBeDefined();
+    expect(fooWithElo.elo.matchCount).toBe(1);
 
-    expect(barWithElo.elo).toBeCloseTo(1500);
-    expect(barWithElo.lastDelta).toBeCloseTo(0);
-    expect(barWithElo.lastPlayedAt).toBeDefined();
-    expect(barWithElo.matchCount).toBe(1);
+    expect(barWithElo.elo.rating).toBeCloseTo(1500);
+    expect(barWithElo.elo.lastDelta).toBeCloseTo(0);
+    expect(barWithElo.elo.lastPlayedAt).toBeDefined();
+    expect(barWithElo.elo.matchCount).toBe(1);
 
-    expect(fooWithElo.lastPlayedAt).toBe(barWithElo.lastPlayedAt);
+    expect(fooWithElo.elo.lastPlayedAt).toBe(barWithElo.elo.lastPlayedAt);
   });
   test("oddsAgainst", () => {
     const odds = player(foo).oddsAgainst(bar);
@@ -132,8 +132,5 @@ describe("first match", () => {
     const fooAfterReset = player(fooWithElo).reset();
 
     expect(fooAfterReset.elo).toBeUndefined();
-    expect(fooAfterReset.lastDelta).toBeUndefined();
-    expect(fooAfterReset.lastPlayedAt).toBeUndefined();
-    expect(fooAfterReset.matchCount).toBeUndefined();
   });
 });

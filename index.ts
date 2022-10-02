@@ -1,36 +1,21 @@
 interface Elo {
-  elo: number;
+  rating: number;
   lastDelta: number;
   lastPlayedAt: number;
   matchCount: number;
 }
 
-interface EloMeta {
-  k: number;
-  didWin: number;
-  p: number;
-}
-
-type EloFieldNames = {
-  [Property in keyof Elo]: string;
-};
-
 interface EloConfig {
   DMax: number;
-  fieldNames: EloFieldNames;
-  initialElo: number;
-  kGenerator: (eloObject: any) => number;
+  fieldName: string;
+  initialRating: number;
+  kGenerator: (eloObject: Elo) => number;
 }
 
 const defaultConfig: Readonly<EloConfig> = {
   DMax: 400,
-  fieldNames: {
-    elo: "elo",
-    matchCount: "matchCount",
-    lastPlayedAt: "lastPlayedAt",
-    lastDelta: "lastDelta",
-  },
-  initialElo: 1500,
+  fieldName: "elo",
+  initialRating: 1500,
   kGenerator: ({ matchCount }) => {
     if (matchCount < 30) {
       return 32;
@@ -41,103 +26,84 @@ const defaultConfig: Readonly<EloConfig> = {
 };
 
 const elo = (config: Readonly<Partial<EloConfig>> = {}) => {
-  const { initialElo, DMax, kGenerator } = {
+  const { initialRating, DMax, kGenerator, fieldName } = {
     ...defaultConfig,
     ...config,
   };
 
-  const fieldNames = {
-    ...defaultConfig.fieldNames,
-    ...config.fieldNames,
+  const defaultElo: Elo = {
+    rating: initialRating,
+    lastDelta: NaN,
+    lastPlayedAt: NaN,
+    matchCount: 0,
   };
 
-  const defaultElo = {
-    [fieldNames.elo]: initialElo,
-    [fieldNames.lastDelta]: NaN,
-    [fieldNames.lastPlayedAt]: NaN,
-    [fieldNames.matchCount]: 0,
-  };
+  return <A extends Object>(a: A) => {
+    const eloA: Elo = (a[fieldName as keyof A] as Elo) ?? { ...defaultElo };
 
-  type EloObject = object & typeof defaultElo;
+    const oddsAgainst = <B extends Object>(b: B) => {
+      const eloB: Elo = (b[fieldName as keyof B] as Elo) ?? { ...defaultElo };
 
-  return (a: object) => {
-    const eloA = {
-      ...defaultElo,
-      ...a,
-    };
-
-    const oddsAgainst = (b: object) => {
-      const eloB = {
-        ...defaultElo,
-        ...b,
-      };
       const clamp = (value: number) => ({
         between: (lower: number, upper: number) =>
           Math.max(Math.min(value, upper), lower),
       });
 
-      const D = clamp(eloA[fieldNames.elo] - eloB[fieldNames.elo]).between(
-        -DMax,
-        DMax
-      );
+      const D = clamp(eloA.rating - eloB.rating).between(-DMax, DMax);
 
       return 1 / (1 + 10 ** (-D / DMax));
     };
 
-    const resolveMatch = (didAWin: number) => (b: object) => {
-      const eloB = {
-        ...defaultElo,
-        ...b,
-      };
+    const resolveMatch =
+      (didAWin: number) =>
+      <B extends Object>(b: B) => {
+        const eloB: Elo = (b[fieldName as keyof B] as Elo) ?? { ...defaultElo };
 
-      const metaA: Readonly<EloMeta> = {
-        k: kGenerator(eloA),
-        didWin: didAWin,
-        p: oddsAgainst(eloB),
-      };
+        interface EloMeta {
+          k: number;
+          didWin: number;
+          p: number;
+        }
 
-      const metaB: Readonly<EloMeta> = {
-        k: kGenerator(eloB),
-        didWin: 1 - didAWin,
-        p: 1 - metaA.p,
-      };
-
-      const update = (
-        {
-          [fieldNames.elo]: oldElo,
-          [fieldNames.matchCount]: matchCount,
-          ...rest
-        },
-        { k, didWin, p }: Readonly<EloMeta>,
-        playedAt: number
-      ) => {
-        const newElo = oldElo + k * (didWin - p);
-
-        return {
-          ...rest,
-          [fieldNames.elo]: newElo,
-          [fieldNames.matchCount]: matchCount + 1,
-          [fieldNames.lastDelta]: newElo - oldElo,
-          [fieldNames.lastPlayedAt]: playedAt,
+        const metaA: Readonly<EloMeta> = {
+          k: kGenerator(eloA),
+          didWin: didAWin,
+          p: oddsAgainst(eloB),
         };
+
+        const metaB: Readonly<EloMeta> = {
+          k: kGenerator(eloB),
+          didWin: 1 - didAWin,
+          p: 1 - metaA.p,
+        };
+
+        const update = (
+          { rating: oldRating, matchCount }: Elo,
+          { k, didWin, p }: Readonly<EloMeta>,
+          playedAt: number
+        ) => {
+          const newRating = oldRating + k * (didWin - p);
+
+          return {
+            rating: newRating,
+            matchCount: matchCount + 1,
+            lastDelta: newRating - oldRating,
+            lastPlayedAt: playedAt,
+          };
+        };
+
+        const playedAt = Date.now();
+
+        return [
+          { ...a, [fieldName]: update(eloA, metaA, playedAt) },
+          { ...b, [fieldName]: update(eloB, metaB, playedAt) },
+        ];
       };
-
-      const playedAt = Date.now();
-
-      return [update(eloA, metaA, playedAt), update(eloB, metaB, playedAt)];
-    };
 
     const reset = () => {
-      [
-        fieldNames.elo,
-        fieldNames.matchCount,
-        fieldNames.lastDelta,
-        fieldNames.lastPlayedAt,
-      ].forEach((fieldName) => {
-        delete eloA[fieldName];
-      });
+      delete a[fieldName as keyof A];
 
-      return eloA;
+      return a;
     };
 
     return {
