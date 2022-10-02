@@ -32,22 +32,26 @@ Should print something like this:
 foo has a 50% chance of winning against bar
 {
   a: 42,
-  elo: 1516,
-  matchCount: 1,
-  lastDelta: 16,
-  lastPlayedAt: 1629554837908
+  elo: {
+    rating: 1516,
+    matchCount: 1,
+    lastDelta: 16,
+    lastPlayedAt: 1629554837908
+  }
 } {
   z: 43,
-  elo: 1484,
-  matchCount: 1,
-  lastDelta: -16,
-  lastPlayedAt: 1629554837908
+  elo: {
+    rating: 1484,
+    matchCount: 1,
+    lastDelta: -16,
+    lastPlayedAt: 1629554837908
+  }
 }
 ```
 
 Note that the elo module keeps `foo.a` and `bar.z` untouched.
 It enriches the objects with Elo stuff (rating, match count, last delta and last play timestamp).
-This is useful if you want to add elo rating on existing data, e.g. coming from an API.
+This is useful if you want to add elo rating on top of existing data, e.g. coming from an API.
 
 ## Advanced usage
 
@@ -76,24 +80,30 @@ player 0 has a 50% chance of winning against player 1
 [
   {
     a: 42,
-    elo: 1516,
-    matchCount: 1,
-    lastDelta: 16,
-    lastPlayedAt: 1629554837908
+    elo: {
+      rating: 1516,
+      matchCount: 1,
+      lastDelta: 16,
+      lastPlayedAt: 1629554837908
+    }
   },
   {
     z: 43,
-    elo: 1484,
-    matchCount: 1,
-    lastDelta: -16,
-    lastPlayedAt: 1629554837908
+    elo: {
+      rating: 1484,
+      matchCount: 1,
+      lastDelta: -16,
+      lastPlayedAt: 1629554837908
+    }
   },
   {
     x: 44,
-    elo: 1500,
-    matchCount: 0,
-    lastDelta: NaN,
-    lastPlayedAt: NaN
+    elo: {
+      rating: 1500,
+      matchCount: 0,
+      lastDelta: NaN,
+      lastPlayedAt: NaN
+    }
   }
 ]
 ```
@@ -103,25 +113,20 @@ Here is an example with the default values:
 
 ```js
 const player = elo({
-  initialElo: 1500,
+  initialRating: 1500,
   DMax: 400,
-  kGenerator: (player) => {
-    if (player.matchCount < 30) {
+  kGenerator: (eloData) => {
+    if (eloData.matchCount < 30) {
       return 32;
     }
 
     return 24;
   },
-  fieldNames: {
-    elo: "elo",
-    matchCount: "matchCount",
-    lastPlayedAt: "lastPlayedAt",
-    lastDelta: "lastDelta",
-  },
+  fieldName: "elo",
 });
 ```
 
-The module will use `initialElo` for players with an _undefined_ rating.
+The module will use `initialRating` for players with an _undefined_ rating.
 See details of [Elo rating system](https://en.wikipedia.org/wiki/Elo_rating_system) for the `DMax` and `k` factors.
 
 ## License
