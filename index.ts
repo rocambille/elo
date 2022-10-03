@@ -159,10 +159,18 @@ class PoolHandler<T extends object> {
   }
 }
 
-elo.Pool = <T extends object>(
-  iterable: T,
-  config: Readonly<Partial<EloConfig>> = {}
-): T & { player: Function } =>
-  new Proxy(iterable, new PoolHandler<T>(config)) as T & { player: Function };
+const makePoolFactory =
+  (config: Readonly<Partial<EloConfig>>) =>
+  <T extends object>(iterable: T): T & { player: Function } =>
+    new Proxy(iterable, new PoolHandler<T>(config)) as T & { player: Function };
+
+export const Pool = {
+  config: function (config: Readonly<Partial<EloConfig>>) {
+    return {
+      from: makePoolFactory(config),
+    };
+  },
+  from: makePoolFactory({}),
+};
 
 export default elo;

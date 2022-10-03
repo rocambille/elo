@@ -55,12 +55,12 @@ This is useful if you want to add elo rating on top of existing data, e.g. comin
 
 ## Advanced usage
 
-You can manage a whole collection using the `elo.Pool` factory as follows:
+You can manage a whole collection using the `Pool` object as follows:
 
 ```js
-import elo from "@rocambille/elo";
+import { Pool } from "@rocambille/elo";
 
-let pool = elo.Pool([{ a: 42 }, { z: 43 }, { x: 44 }]);
+let pool = Pool.from([{ a: 42 }, { z: 43 }, { x: 44 }]);
 
 const odds = pool.player(0).oddsAgainst(1);
 
@@ -108,10 +108,12 @@ player 0 has a 50% chance of winning against player 1
 ]
 ```
 
-You can pass a configuration object as parameter to the `elo` function, or as second parameter to the `elo.Pool` factory.
+You can pass a configuration object as parameter to the `elo` function.
 Here is an example with the default values:
 
 ```js
+import elo from "elo";
+
 const player = elo({
   initialRating: 1500,
   DMax: 400,
@@ -124,6 +126,25 @@ const player = elo({
   },
   fieldName: "elo",
 });
+```
+
+Same works with the `Pool` object, using the `Pool.config` method:
+
+```js
+import { Pool } from "elo";
+
+const pool = Pool.config({
+  initialRating: 1500,
+  DMax: 400,
+  kGenerator: (eloData) => {
+    if (eloData.matchCount < 30) {
+      return 32;
+    }
+
+    return 24;
+  },
+  fieldName: "elo",
+}).from(...);
 ```
 
 The module will use `initialRating` for players with an _undefined_ rating.
