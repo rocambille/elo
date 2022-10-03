@@ -124,7 +124,7 @@ const player = elo({
 
     return 24;
   },
-  fieldName: "elo",
+  propsKey: "elo",
 });
 ```
 
@@ -143,7 +143,7 @@ const pool = Pool.config({
 
     return 24;
   },
-  fieldName: "elo",
+  propsKey: "elo",
 }).from(...);
 ```
 

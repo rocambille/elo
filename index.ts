@@ -7,14 +7,13 @@ interface Elo {
 
 interface EloConfig {
   DMax: number;
-  fieldName: string;
   initialRating: number;
   kGenerator: (eloObject: Elo) => number;
+  propsKey: string;
 }
 
 const defaultConfig: Readonly<EloConfig> = {
   DMax: 400,
-  fieldName: "elo",
   initialRating: 1500,
   kGenerator: ({ matchCount }) => {
     if (matchCount < 30) {
@@ -23,10 +22,11 @@ const defaultConfig: Readonly<EloConfig> = {
 
     return 24;
   },
+  propsKey: "elo",
 };
 
 const elo = (config: Readonly<Partial<EloConfig>> = {}) => {
-  const { initialRating, DMax, kGenerator, fieldName } = {
+  const { DMax, initialRating, kGenerator, propsKey } = {
     ...defaultConfig,
     ...config,
   };
@@ -39,10 +39,12 @@ const elo = (config: Readonly<Partial<EloConfig>> = {}) => {
   };
 
   return <A extends Object>(a: A) => {
-    const eloA: Elo = (a[fieldName as keyof A] as Elo) ?? { ...defaultElo };
+    const eloA: Elo = (a[propsKey as keyof A] as Elo) ?? { ...defaultElo };
 
     const oddsAgainst = <B extends Object>(b: B) => {
-      const eloB: Elo = (b[fieldName as keyof B] as Elo) ?? { ...defaultElo };
+      const eloB: Elo = (b[propsKey as keyof B] as Elo) ?? {
+        ...defaultElo,
+      };
 
       const clamp = (value: number) => ({
         between: (lower: number, upper: number) =>
@@ -57,7 +59,9 @@ const elo = (config: Readonly<Partial<EloConfig>> = {}) => {
     const resolveMatch =
       (didAWin: number) =>
       <B extends Object>(b: B) => {
-        const eloB: Elo = (b[fieldName as keyof B] as Elo) ?? { ...defaultElo };
+        const eloB: Elo = (b[propsKey as keyof B] as Elo) ?? {
+          ...defaultElo,
+        };
 
         interface EloMeta {
           k: number;
@@ -95,13 +99,13 @@ const elo = (config: Readonly<Partial<EloConfig>> = {}) => {
         const playedAt = Date.now();
 
         return [
-          { ...a, [fieldName]: update(eloA, metaA, playedAt) },
-          { ...b, [fieldName]: update(eloB, metaB, playedAt) },
+          { ...a, [propsKey]: update(eloA, metaA, playedAt) },
+          { ...b, [propsKey]: update(eloB, metaB, playedAt) },
         ];
       };
 
     const reset = () => {
-      delete a[fieldName as keyof A];
+      delete a[propsKey as keyof A];
 
       return a;
     };
