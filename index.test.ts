@@ -1,4 +1,4 @@
-import elo from "./index";
+import elo, { Pool } from "./index";
 
 describe("immutability", () => {
   const player = elo();
@@ -132,5 +132,63 @@ describe("first match", () => {
     const fooAfterReset = player(fooWithElo).reset();
 
     expect(fooAfterReset.elo).toBeUndefined();
+  });
+});
+
+describe("pool picking", () => {
+  test("random", () => {
+    const pool = Pool.from([{ a: 42 }, { b: 43 }, { c: 44 }]);
+
+    for (let c = 100; c--; ) {
+      const [i, j, method] = pool.pick("random").sort();
+
+      expect(i).toBeGreaterThanOrEqual(0);
+      expect(i).toBeLessThan(pool.length);
+      expect(j).toBeGreaterThanOrEqual(0);
+      expect(j).toBeLessThan(pool.length);
+      expect(i).not.toBe(j);
+      expect(method).toBe("random");
+    }
+  });
+  test("matchCount", () => {
+    const pool = Pool.from([
+      { a: 42 }, // new comer: picked
+      { b: 43, elo: { matchCount: 2 } }, // veteran: we're looking for newcomers
+      { c: 44, elo: { matchCount: 1 } }, // second: not picked to avoid rematch
+      { d: 45, elo: { matchCount: 1 } }, // third: picked
+    ]);
+
+    const [i, j, method] = pool.pick("matchCount");
+
+    expect(i).toBe(0);
+    expect(j).toBe(3);
+    expect(method).toBe("matchCount");
+  });
+  test("lastPlayedAt", () => {
+    const pool = Pool.from([
+      { a: 42, elo: { lastPlayedAt: 0 } }, // first: picked
+      { b: 43 }, // newcomer: we're looking for veterans
+      { c: 44, elo: { lastPlayedAt: 1 } }, // second: not picked to avoid rematch
+      { d: 45, elo: { lastPlayedAt: 1 } }, // third: picked
+    ]);
+
+    const [i, j, method] = pool.pick("lastPlayedAt");
+
+    expect(i).toBe(0);
+    expect(j).toBe(3);
+    expect(method).toBe("lastPlayedAt");
+  });
+  test("small pool (length = 2)", () => {
+    const pool = Pool.from([{ a: 42 }, { b: 43 }]);
+
+    const [i, j] = pool.pick();
+
+    expect(i).toBe(0);
+    expect(j).toBe(1);
+  });
+  test("very small pool (length = 1)", () => {
+    const pool = Pool.from([{ a: 42 }]);
+
+    expect(() => pool.pick()).toThrow(new Error("not enough players"));
   });
 });
