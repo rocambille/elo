@@ -1,6 +1,6 @@
 {
   "name": "@rocambille/elo",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Enrich your objects with Elo rating.",
   "keywords": [
     "elo",

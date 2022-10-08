@@ -7,9 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Nothing planned: [open an issue](https://github.com/rocambille/elo/issues/new) if you have any request :)
+
+## [2.1.0] - 2022-10-08
+
 ### Added
 
-- Added `Pool.pickPlayers` method to pick player indexes using various algorithms (random, new comers...).
+- Added `Pool.pick` method to pick player indexes using various algorithms (random, new comers...).
 
 ## [2.0.0] - 2022-10-03
 
