@@ -53,7 +53,7 @@ Note that the elo module keeps `foo.a` and `bar.z` untouched.
 It enriches the objects with Elo stuff (rating, match count, last delta and last play timestamp).
 This is useful if you want to add elo rating on top of existing data, e.g. coming from an API.
 
-## Advanced usage
+## The Pool object
 
 You can manage a whole collection using the `Pool` object as follows:
 
@@ -107,6 +107,27 @@ player 0 has a 50% chance of winning against player 1
   }
 ]
 ```
+
+The `Pool` provides a useful method to `pick` player indices using multiple options:
+
+```js
+import { Pool } from "@rocambille/elo";
+
+let pool = Pool.from([{ a: 42 }, { z: 43 }, { x: 44 }]);
+
+// use one of the following lines to pick players
+
+const [i, j] = Pool.pick("random"); // randomly pick
+const [i, j] = Pool.pick("matchCount"); // pick players with a low match count
+const [i, j] = Pool.pick("lastPlayedAt"); // pick players who have last played in the longest time
+const [i, j] = Pool.pick(); // pick players by randomly choosing one the above method (recommended)
+
+// then you can use i and j to trigger a match
+
+pool = pool.player(i).wins(j);
+```
+
+## Configuration
 
 You can pass a configuration object as parameter to the `elo` function.
 Here is an example with the default values:
