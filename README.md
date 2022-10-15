@@ -5,10 +5,17 @@
 
 Enrich your objects with [Elo rating](https://en.wikipedia.org/wiki/Elo_rating_system).
 
+## Installation
+
+```bash
+npm i @rocambille/elo
+```
+
 ## Basic usage
 
 ```js
 import elo from "@rocambille/elo";
+// or const elo = require("@rocambille/elo");
 
 const player = elo();
 
@@ -59,6 +66,7 @@ You can manage a whole collection using the `Pool` object as follows:
 
 ```js
 import { Pool } from "@rocambille/elo";
+// or const { Pool } = require("@rocambille/elo");
 
 let pool = Pool.from([{ a: 42 }, { z: 43 }, { x: 44 }]);
 
@@ -112,15 +120,16 @@ The `Pool` provides a useful method to `pick` player indices using multiple opti
 
 ```js
 import { Pool } from "@rocambille/elo";
+// or const { Pool } = require("@rocambille/elo");
 
 let pool = Pool.from([{ a: 42 }, { z: 43 }, { x: 44 }]);
 
 // use one of the following lines to pick players
 
-const [i, j] = Pool.pick("random"); // randomly pick
-const [i, j] = Pool.pick("matchCount"); // pick players with a low match count
-const [i, j] = Pool.pick("lastPlayedAt"); // pick players who have last played in the longest time
-const [i, j] = Pool.pick(); // pick players by randomly choosing one the above method (recommended)
+const [i, j] = pool.pick("random"); // randomly pick
+const [i, j] = pool.pick("matchCount"); // pick players with a low match count
+const [i, j] = pool.pick("lastPlayedAt"); // pick players who have last played in the longest time
+const [i, j] = pool.pick(); // pick players by randomly choosing one the above method (recommended)
 
 // then you can use i and j to trigger a match
 
@@ -134,6 +143,7 @@ Here is an example with the default values:
 
 ```js
 import elo from "elo";
+// or const elo = require("@rocambille/elo");
 
 const player = elo({
   initialRating: 1500,
@@ -153,6 +163,7 @@ Same works with the `Pool` object, using the `Pool.config` method:
 
 ```js
 import { Pool } from "elo";
+// or const { Pool } = require("@rocambille/elo");
 
 const pool = Pool.config({
   initialRating: 1500,

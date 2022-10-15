@@ -8,7 +8,7 @@ interface Elo {
 interface EloConfig {
   DMax: number;
   initialRating: number;
-  kGenerator: (eloObject: Elo) => number;
+  kGenerator: (eloData: Elo) => number;
   propsKey: string;
 }
 
@@ -25,26 +25,28 @@ const defaultConfig: Readonly<EloConfig> = {
   propsKey: "elo",
 };
 
+const full = (config: Readonly<Partial<EloConfig>>): EloConfig => ({
+  ...defaultConfig,
+  ...config,
+});
+
+const defaultElo = (initialRating: number): Elo => ({
+  rating: initialRating,
+  lastDelta: NaN,
+  lastPlayedAt: NaN,
+  matchCount: 0,
+});
+
 const elo = (config: Readonly<Partial<EloConfig>> = {}) => {
-  const { DMax, initialRating, kGenerator, propsKey } = {
-    ...defaultConfig,
-    ...config,
-  };
+  const { DMax, initialRating, kGenerator, propsKey } = full(config);
 
-  const defaultElo: Elo = {
-    rating: initialRating,
-    lastDelta: NaN,
-    lastPlayedAt: NaN,
-    matchCount: 0,
-  };
+  const dummy = { [propsKey]: defaultElo(initialRating) };
 
-  return <A extends Object>(a: A) => {
-    const eloA: Elo = (a[propsKey as keyof A] as Elo) ?? { ...defaultElo };
+  return <A extends Readonly<Object>>(a: A) => {
+    const eloA: Elo = (a[propsKey as keyof A] as Elo) ?? dummy[propsKey];
 
     const oddsAgainst = <B extends Object>(b: B) => {
-      const eloB: Elo = (b[propsKey as keyof B] as Elo) ?? {
-        ...defaultElo,
-      };
+      const eloB: Elo = (b[propsKey as keyof B] as Elo) ?? dummy[propsKey];
 
       const clamp = (value: number) => ({
         between: (lower: number, upper: number) =>
@@ -58,10 +60,8 @@ const elo = (config: Readonly<Partial<EloConfig>> = {}) => {
 
     const resolveMatch =
       (didAWin: number) =>
-      <B extends Object>(b: B) => {
-        const eloB: Elo = (b[propsKey as keyof B] as Elo) ?? {
-          ...defaultElo,
-        };
+      <B extends Readonly<Object>>(b: B) => {
+        const eloB: Elo = (b[propsKey as keyof B] as Elo) ?? dummy[propsKey];
 
         interface EloMeta {
           k: number;
@@ -72,7 +72,7 @@ const elo = (config: Readonly<Partial<EloConfig>> = {}) => {
         const metaA: Readonly<EloMeta> = {
           k: kGenerator(eloA),
           didWin: didAWin,
-          p: oddsAgainst(eloB),
+          p: oddsAgainst(b),
         };
 
         const metaB: Readonly<EloMeta> = {
@@ -81,8 +81,8 @@ const elo = (config: Readonly<Partial<EloConfig>> = {}) => {
           p: 1 - metaA.p,
         };
 
-        const update = (
-          { rating: oldRating, matchCount }: Elo,
+        const from = (
+          { rating: oldRating, matchCount }: Readonly<Elo>,
           { k, didWin, p }: Readonly<EloMeta>,
           playedAt: number
         ) => {
@@ -99,15 +99,15 @@ const elo = (config: Readonly<Partial<EloConfig>> = {}) => {
         const playedAt = Date.now();
 
         return [
-          { ...a, [propsKey]: update(eloA, metaA, playedAt) },
-          { ...b, [propsKey]: update(eloB, metaB, playedAt) },
+          { ...a, [propsKey]: from(eloA, metaA, playedAt) },
+          { ...b, [propsKey]: from(eloB, metaB, playedAt) },
         ];
       };
 
     const reset = () => {
-      delete a[propsKey as keyof A];
+      const { [propsKey as keyof Object]: elo, ...cleanedA } = a;
 
-      return a;
+      return cleanedA;
     };
 
     return {
@@ -125,7 +125,7 @@ class PoolHandler<T extends Object> {
   player: ReturnType<typeof elo>;
 
   constructor(config: Readonly<Partial<EloConfig>>) {
-    this.config = { ...defaultConfig, ...config };
+    this.config = full(config);
     this.player = elo(config);
   }
 
@@ -140,8 +140,8 @@ class PoolHandler<T extends Object> {
             resolver: keyof Omit<typeof playerA, "oddsAgainst" | "reset">
           ) => {
             const [newA, newB] = playerA[resolver](target[indexB] as Object);
-            target[indexA] = newA as unknown as T[keyof T];
-            target[indexB] = newB as unknown as T[keyof T];
+            (target[indexA] as Object) = newA;
+            (target[indexB] as Object) = newB;
 
             return receiver;
           };
@@ -154,7 +154,7 @@ class PoolHandler<T extends Object> {
               return playerA.oddsAgainst(target[indexB] as Object);
             },
             reset: () => {
-              target[indexA] = playerA.reset() as unknown as T[keyof T];
+              (target[indexA] as Object) = playerA.reset();
 
               return receiver;
             },
@@ -225,7 +225,9 @@ class PoolHandler<T extends Object> {
                   ]
                 );
 
-              const [{ index: i }, , { index: j }] = fromProp(method as keyof Elo);
+              const [{ index: i }, , { index: j }] = fromProp(
+                method as keyof Elo
+              );
 
               return [i, j, method];
             }
@@ -244,7 +246,7 @@ interface PoolProps {
 
 const makePoolFactory =
   (config: Readonly<Partial<EloConfig>>) =>
-  <T extends object>(iterable: T): T & PoolProps =>
+  <T extends Object>(iterable: T): T & PoolProps =>
     new Proxy(iterable, new PoolHandler<T>(config)) as T & PoolProps;
 
 export const Pool = {

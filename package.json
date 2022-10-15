@@ -1,11 +1,14 @@
 {
   "name": "@rocambille/elo",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Enrich your objects with Elo rating.",
   "keywords": [
     "elo",
     "rating",
-    "ranking"
+    "ranking",
+    "chess",
+    "go",
+    "game"
   ],
   "homepage": "https://github.com/rocambille/elo#readme",
   "bugs": {
