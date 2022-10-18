@@ -128,10 +128,15 @@ describe("first match", () => {
     expect(odds).toBeCloseTo(0.5);
   });
   test("reset", () => {
-    const [fooWithElo /*, barWithElo*/] = player(foo).wins(bar);
-    const fooAfterReset = player(fooWithElo).reset();
+    const [fooWithElo, barWithElo] = player(foo).wins(bar);
+    expect(fooWithElo.elo).toBeDefined();
+    expect(barWithElo.elo).toBeDefined();
 
+    const fooAfterReset = player(fooWithElo).reset();
     expect(fooAfterReset.elo).toBeUndefined();
+
+    const barAfterReset = player(barWithElo).reset();
+    expect(barAfterReset.elo).toBeUndefined();
   });
 });
 
