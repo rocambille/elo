@@ -1,6 +1,6 @@
 import elo, { Pool } from "./index";
 
-describe("immutability", () => {
+describe("no side effects", () => {
   const player = elo();
 
   const foo = { a: 42 };
@@ -138,6 +138,131 @@ describe("first match", () => {
     const barAfterReset = player(barWithElo).reset();
     expect(barAfterReset.elo).toBeUndefined();
   });
+});
+
+const scenario: Readonly<Array<{ action: string; result: Array<number> }>> = [
+  { action: "start", result: [1500, 1500] },
+  { action: "loses", result: [1484, 1516] },
+  { action: "ties", result: [1485.47, 1514.53] },
+  { action: "ties", result: [1486.805, 1513.195] },
+  { action: "wins", result: [1504.018, 1495.982] },
+  { action: "loses", result: [1487.648, 1512.352] },
+  { action: "ties", result: [1488.783, 1511.217] },
+  { action: "wins", result: [1505.815, 1494.185] },
+  { action: "ties", result: [1505.28, 1494.72] },
+  { action: "wins", result: [1520.794, 1479.206] },
+  { action: "loses", result: [1502.888, 1497.112] },
+];
+
+describe("10 rounds", () => {
+  for (let i = 1; i < scenario.length; i++) {
+    test(`round ${i}`, () => {
+      const {
+        result: [previousFooRating, previousBarRating],
+      } = scenario[i - 1];
+      const {
+        action,
+        result: [newFooRating, newBarRating],
+      } = scenario[i];
+
+      const player = elo();
+
+      const [foo, bar] = player({
+        a: 42,
+        elo: {
+          rating: previousFooRating,
+          matchCount: i - 1,
+          lastDelta: NaN,
+          lastPlayedAt: NaN,
+        },
+      })[
+        action as keyof {
+          wins: Function;
+          loses: Function;
+          ties: Function;
+        }
+      ]({
+        a: 42,
+        elo: {
+          rating: previousBarRating,
+          matchCount: i - 1,
+          lastDelta: NaN,
+          lastPlayedAt: NaN,
+        },
+      });
+
+      expect(foo.elo.rating).toBeCloseTo(newFooRating);
+      expect(foo.elo.lastDelta).toBeCloseTo(newFooRating - previousFooRating);
+      expect(foo.elo.lastPlayedAt).toBeDefined();
+      expect(foo.elo.matchCount).toBe(i);
+
+      expect(bar.elo.rating).toBeCloseTo(newBarRating);
+      expect(bar.elo.lastDelta).toBeCloseTo(newBarRating - previousBarRating);
+      expect(bar.elo.lastPlayedAt).toBeDefined();
+      expect(bar.elo.matchCount).toBe(i);
+
+      expect(foo.elo.lastPlayedAt).toBe(bar.elo.lastPlayedAt);
+    });
+  }
+});
+
+describe("10 rounds (using Pool)", () => {
+  for (let i = 1; i < scenario.length; i++) {
+    test(`round ${i}`, () => {
+      const {
+        result: [previous1stRating, previous2ndRating],
+      } = scenario[i - 1];
+      const {
+        action,
+        result: [new1stRating, new2ndRating],
+      } = scenario[i];
+
+      let pool = Pool.from([
+        {
+          a: 42,
+          elo: {
+            rating: previous1stRating,
+            matchCount: i - 1,
+            lastDelta: NaN,
+            lastPlayedAt: NaN,
+          },
+        },
+        {
+          z: 43,
+          elo: {
+            rating: previous2ndRating,
+            matchCount: i - 1,
+            lastDelta: NaN,
+            lastPlayedAt: NaN,
+          },
+        },
+      ])
+        .player(0)
+        [
+          action as keyof {
+            wins: Function;
+            loses: Function;
+            ties: Function;
+          }
+        ](1);
+
+      expect(pool[0].elo.rating).toBeCloseTo(new1stRating);
+      expect(pool[0].elo.lastDelta).toBeCloseTo(
+        new1stRating - previous1stRating
+      );
+      expect(pool[0].elo.lastPlayedAt).toBeDefined();
+      expect(pool[0].elo.matchCount).toBe(i);
+
+      expect(pool[1].elo.rating).toBeCloseTo(new2ndRating);
+      expect(pool[1].elo.lastDelta).toBeCloseTo(
+        new2ndRating - previous2ndRating
+      );
+      expect(pool[1].elo.lastPlayedAt).toBeDefined();
+      expect(pool[1].elo.matchCount).toBe(i);
+
+      expect(pool[0].elo.lastPlayedAt).toBe(pool[1].elo.lastPlayedAt);
+    });
+  }
 });
 
 describe("pool picking", () => {
