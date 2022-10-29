@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Nothing planned: [open an issue](https://github.com/rocambille/elo/issues/new) if you have any request :)
 
+## [2.1.2] - 2022-10-29
+
+### Added
+
+- Added tests using a 10 rounds scenario.
+
+### Changed
+
+- Refactored internal implementation of Pool.
+
+## [2.1.1] - 2022-10-15
+
+### Fixed
+
+- Fixed a bug in meta calculation during a match, which impacted the delta amount. The bug was introduced in v1.2.
+
 ## [2.1.0] - 2022-10-08
 
 ### Added
