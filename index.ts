@@ -5,6 +5,10 @@ interface Elo {
   matchCount: number;
 }
 
+interface EloObject {
+  [x: string]: Elo;
+}
+
 interface EloConfig {
   DMax: number;
   initialRating: number;
@@ -41,8 +45,6 @@ const elo = (config: Readonly<Partial<EloConfig>> = {}) => {
   const { DMax, initialRating, kGenerator, propsKey } = full(config);
 
   const dummy = { [propsKey]: defaultElo(initialRating) };
-
-  type EloObject = typeof dummy;
 
   return <A extends Readonly<EloObject | Object>>(a: A) => {
     const eloA: Elo = (a as EloObject)[propsKey] ?? dummy[propsKey];
@@ -122,28 +124,34 @@ const elo = (config: Readonly<Partial<EloConfig>> = {}) => {
   };
 };
 
-interface Pool<T> extends Array<T> {
+interface EloArray<T> extends Array<T> {
   player?: Function;
   pick?: Function;
 }
 
-const makePoolFactory = (config: Readonly<Partial<EloConfig>> = {}) => {
-  const { initialRating, propsKey } = full(config);
+export class Pool {
+  static #config: Readonly<Partial<EloConfig>> = defaultConfig;
 
-  const player = elo(config);
+  static config(config: Readonly<Partial<EloConfig>>) {
+    Pool.#config = config;
 
-  const dummy = { [propsKey]: defaultElo(initialRating) };
+    return Pool;
+  }
 
-  type EloObject = typeof dummy;
+  static from<T extends EloObject | Object>(
+    iterable: EloArray<T>
+  ): Required<EloArray<T>> {
+    const { initialRating, propsKey } = full(this.#config);
 
-  return <T extends EloObject | Object>(
-    iterable: Pool<T>
-  ): Required<Pool<T>> => {
-    iterable.player = (indexA: keyof Pool<T>) => {
+    const player = elo(this.#config);
+
+    const dummy = { [propsKey]: defaultElo(initialRating) };
+
+    iterable.player = (indexA: keyof EloArray<T>) => {
       const playerA = player(iterable[indexA] as EloObject);
 
       const resolveMatch = (
-        indexB: keyof Pool<T>,
+        indexB: keyof EloArray<T>,
         resolver: keyof Omit<typeof playerA, "oddsAgainst" | "reset">
       ) => {
         const [newA, newB] = playerA[resolver](iterable[indexB] as EloObject);
@@ -154,14 +162,15 @@ const makePoolFactory = (config: Readonly<Partial<EloConfig>> = {}) => {
       };
 
       return {
-        wins: (indexB: keyof Pool<T>) => resolveMatch(indexB, "wins"),
-        ties: (indexB: keyof Pool<T>) => resolveMatch(indexB, "ties"),
-        loses: (indexB: keyof Pool<T>) => resolveMatch(indexB, "loses"),
-        oddsAgainst: (indexB: keyof Pool<T>): number => {
+        wins: (indexB: keyof EloArray<T>) => resolveMatch(indexB, "wins"),
+        ties: (indexB: keyof EloArray<T>) => resolveMatch(indexB, "ties"),
+        loses: (indexB: keyof EloArray<T>) => resolveMatch(indexB, "loses"),
+        oddsAgainst: (indexB: keyof EloArray<T>): number => {
           return playerA.oddsAgainst(iterable[indexB] as EloObject);
         },
         reset: () => {
-          (iterable[indexA as keyof Pool<T>] as EloObject) = playerA.reset();
+          (iterable[indexA as keyof EloArray<T>] as EloObject) =
+            playerA.reset();
 
           return iterable;
         },
@@ -230,17 +239,8 @@ const makePoolFactory = (config: Readonly<Partial<EloConfig>> = {}) => {
       }
     };
 
-    return iterable as Required<Pool<T>>;
-  };
-};
-
-export const Pool = {
-  config: function (config: Readonly<Partial<EloConfig>>) {
-    return {
-      from: makePoolFactory(config),
-    };
-  },
-  from: makePoolFactory(),
-};
+    return iterable as Required<EloArray<T>>;
+  }
+}
 
 export default elo;
