@@ -7,7 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-Nothing planned: [open an issue](https://github.com/rocambille/elo/issues/new) if you have any request :)
+### Added
+
+- Added a `digits` option for the rating. This is to be used with [Number.toFixed](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed).
+
+[Open an issue](https://github.com/rocambille/elo/issues/new) if you have any request/feedback :)
 
 ## [2.1.2] - 2022-10-29
 
