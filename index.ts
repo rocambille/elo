@@ -188,9 +188,6 @@ export class Pool {
       if (iterable.length === 1) {
         throw new Error("not enough players");
       }
-      if (iterable.length === 2) {
-        return [0, 1, method];
-      }
 
       switch (method) {
         case "random": {
@@ -200,13 +197,6 @@ export class Pool {
           return [i, j, method];
         }
         default: {
-          const defaultElo: Elo = {
-            rating: NaN,
-            lastDelta: NaN,
-            lastPlayedAt: NaN,
-            matchCount: 0,
-          };
-
           const fromProp = (key: keyof Elo) =>
             iterable.reduce(
               (
@@ -234,7 +224,7 @@ export class Pool {
 
           const [{ index: i }, , { index: j }] = fromProp(method as keyof Elo);
 
-          return [i, j, method];
+          return [i ?? 0, j ?? 1, method];
         }
       }
     };
