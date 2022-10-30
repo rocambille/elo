@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Open an issue](https://github.com/rocambille/elo/issues/new) if you have any request/feedback :)
 
+## [2.1.3] - 2022-10-30
+
+### Fixed
+
+- Fixed a bug in `Pool.pick` method when using `lastPlayedAt`:
+  the method returned undefined indexes if every item had undefined `lastPlayedAt` value.
+  The bug was introduced in v2.1.0.
+
 ## [2.1.2] - 2022-10-29
 
 ### Added
