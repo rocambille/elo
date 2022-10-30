@@ -308,6 +308,15 @@ describe("pool picking", () => {
     expect(j).toBe(3);
     expect(method).toBe("lastPlayedAt");
   });
+  test("lastPlayedAt with undefined dates", () => {
+    const pool = Pool.from([{ a: 42 }, { b: 43 }, { c: 44 }, { d: 45 }]);
+
+    const [i, j, method] = pool.pick("lastPlayedAt");
+
+    expect(i).toBe(0);
+    expect(j).toBe(1);
+    expect(method).toBe("lastPlayedAt");
+  });
   test("small pool (length = 2)", () => {
     const pool = Pool.from([{ a: 42 }, { b: 43 }]);
 
