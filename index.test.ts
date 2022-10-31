@@ -317,17 +317,25 @@ describe("pool picking", () => {
     expect(j).toBe(1);
     expect(method).toBe("lastPlayedAt");
   });
-  test("small pool (length = 2)", () => {
-    const pool = Pool.from([{ a: 42 }, { b: 43 }]);
+  ["random", "matchCount", "lastPlayedAt"].forEach((wantedMethod) => {
+    test(`small pool (length = 2, ${wantedMethod})`, () => {
+      const pool = Pool.from([{ a: 42 }, { b: 43 }]);
 
-    const [i, j] = pool.pick();
+      const [i, j, method] = pool.pick(wantedMethod);
 
-    expect(i).toBe(0);
-    expect(j).toBe(1);
-  });
-  test("very small pool (length = 1)", () => {
-    const pool = Pool.from([{ a: 42 }]);
-
-    expect(() => pool.pick()).toThrow(new Error("not enough players"));
+      expect(i).toBe(0);
+      expect(j).toBe(1);
+      expect(method).toBe(wantedMethod);
+    });
+    test(`very small pool (length = 1, ${wantedMethod})`, () => {
+      expect(() => Pool.from([{ a: 42 }]).pick(wantedMethod)).toThrow(
+        new Error("not enough players")
+      );
+    });
+    test(`empty pool (length = 0, ${wantedMethod})`, () => {
+      expect(() => Pool.from([]).pick(wantedMethod)).toThrow(
+        new Error("not enough players")
+      );
+    });
   });
 });
