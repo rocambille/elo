@@ -185,8 +185,12 @@ export class Pool {
 
       const method = forcedMethod ?? methods[pickRandom(0, methods.length - 1)];
 
-      if (iterable.length === 1) {
+      if (iterable.length <= 1) {
         throw new Error("not enough players");
+      }
+
+      if (iterable.length === 2) {
+        return [0, 1, method]; // should be handled explicitly because of random option
       }
 
       switch (method) {
@@ -224,7 +228,7 @@ export class Pool {
 
           const [{ index: i }, , { index: j }] = fromProp(method as keyof Elo);
 
-          return [i ?? 0, j ?? 1, method];
+          return [i ?? 0, j ?? 1, method]; // i and j may be undefined if all lastPlayedAt are NaN
         }
       }
     };
