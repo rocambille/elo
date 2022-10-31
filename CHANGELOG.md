@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Open an issue](https://github.com/rocambille/elo/issues/new) if you have any request/feedback :)
 
+## [2.1.4] - 2022-10-31
+
+### Fixed
+
+- Fixed a bug in `Pool.pick` method when performing on an empty pool:
+  the method didn't throw an error. The bug was introduced in v2.1.0.
+
+- Fixed a bug in `Pool.pick` method when randomly performing on a size-2 pool:
+  now the method always returns `[0, 1]` in this order. The bug was introduced in v2.1.3.
+
 ## [2.1.3] - 2022-10-30
 
 ### Fixed
