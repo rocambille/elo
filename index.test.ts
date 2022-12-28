@@ -294,6 +294,19 @@ describe("pool picking", () => {
     expect(j).toBe(3);
     expect(method).toBe("matchCount");
   });
+  test("matchCount with tie", () => {
+    const pool = Pool.from([
+      { a: 42, elo: { matchCount: 1, lastPlayedAt: 1 } }, // a and c played together last time: a and b should be picked
+      { b: 43, elo: { matchCount: 1, lastPlayedAt: 2 } },
+      { c: 44, elo: { matchCount: 1, lastPlayedAt: 1 } },
+    ]);
+
+    const [i, j, method] = pool.pick("matchCount");
+
+    expect(i).toBe(0);
+    expect(j).toBe(1);
+    expect(method).toBe("matchCount");
+  });
   test("lastPlayedAt", () => {
     const pool = Pool.from([
       { a: 42, elo: { lastPlayedAt: 0 } }, // first: picked

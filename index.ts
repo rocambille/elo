@@ -208,17 +208,17 @@ export class Pool {
                 challenger: EloObject | Object,
                 index: number
               ) => {
-                const challengerStat = ((challenger as EloObject)[propsKey] ??
-                  dummy[propsKey])[key];
+                const challengerStats =
+                  (challenger as EloObject)[propsKey] ?? dummy[propsKey];
 
-                if (challengerStat < first[key]) {
-                  return [{ index, [key]: challengerStat }, first, second];
+                if (challengerStats[key] < first[key]) {
+                  return [{ index, ...challengerStats }, first, second];
                 }
-                if (challengerStat < second[key]) {
-                  return [first, { index, [key]: challengerStat }, second];
+                if (challengerStats[key] < second[key]) {
+                  return [first, { index, ...challengerStats }, second];
                 }
-                if (challengerStat < third[key]) {
-                  return [first, second, { index, [key]: challengerStat }];
+                if (challengerStats[key] < third[key]) {
+                  return [first, second, { index, ...challengerStats }];
                 }
 
                 return [first, second, third];
@@ -226,9 +226,13 @@ export class Pool {
               [{ [key]: Infinity }, { [key]: Infinity }, { [key]: Infinity }]
             );
 
-          const [{ index: i }, , { index: j }] = fromProp(method as keyof Elo);
+          let [a, b, c] = fromProp(method as keyof Elo);
+          console.log(a, b, c);
 
-          return [i ?? 0, j ?? 1, method]; // i and j may be undefined if all lastPlayedAt are NaN
+          if (method === "matchCount" && a.lastPlayedAt === c.lastPlayedAt) {
+            [c, b] = [b, c];
+          }
+          return [a.index ?? 0, c.index ?? 1, method]; // i and j may be undefined if all lastPlayedAt are NaN
         }
       }
     };

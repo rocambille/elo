@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Open an issue](https://github.com/rocambille/elo/issues/new) if you have any request/feedback :)
 
+## [2.1.5] - 2022-12-28
+
+### Fixed
+
+- Fixed a bug in `Pool.pick` method when using match count:
+  the method could trigger a rematch if several objects had the same match count.
+
 ## [2.1.4] - 2022-10-31
 
 ### Fixed
