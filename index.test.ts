@@ -1,5 +1,13 @@
 import elo, { Pool } from "./index";
 
+beforeAll(() => {
+  console.log = jest.fn();
+});
+
+afterAll(() => {
+  expect(console.log).not.toHaveBeenCalled();
+});
+
 describe("no side effects", () => {
   const player = elo();
 
