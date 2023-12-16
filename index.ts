@@ -227,7 +227,6 @@ export class Pool {
             );
 
           let [a, b, c] = fromProp(method as keyof Elo);
-          console.log(a, b, c);
 
           if (method === "matchCount" && a.lastPlayedAt === c.lastPlayedAt) {
             [c, b] = [b, c];
