@@ -1,20 +1,18 @@
-interface Elo {
+interface EloProps {
   rating: number;
   lastDelta: number;
   lastPlayedAt: number;
   matchCount: number;
 }
 
-interface EloObject {
-  [x: string]: Elo;
-}
-
 interface EloConfig {
   DMax: number;
   initialRating: number;
-  kGenerator: (eloData: Elo) => number;
+  kGenerator: (eloProps: EloProps) => number;
   propsKey: string;
 }
+
+type Eloable = {[x: string]: any};
 
 const defaultConfig: Readonly<EloConfig> = {
   DMax: 400,
@@ -29,28 +27,28 @@ const defaultConfig: Readonly<EloConfig> = {
   propsKey: "elo",
 };
 
-const full = (config: Readonly<Partial<EloConfig>>): EloConfig => ({
+const complete = (config: Readonly<Partial<EloConfig>>): EloConfig => ({
   ...defaultConfig,
   ...config,
 });
 
-const defaultElo = (initialRating: number): Elo => ({
+const makeProps = (initialRating: number): EloProps => ({
   rating: initialRating,
   lastDelta: NaN,
   lastPlayedAt: NaN,
   matchCount: 0,
 });
 
-const elo = (config: Readonly<Partial<EloConfig>> = {}) => {
-  const { DMax, initialRating, kGenerator, propsKey } = full(config);
+const elo = (partialConfig: Readonly<Partial<EloConfig>> = {}) => {
+  const { DMax, initialRating, kGenerator, propsKey } = complete(partialConfig);
 
-  const dummy = { [propsKey]: defaultElo(initialRating) };
+  const dummy = { [propsKey]: makeProps(initialRating) };
 
-  return <A extends Readonly<EloObject | Object>>(a: A) => {
-    const eloA: Elo = (a as EloObject)[propsKey] ?? dummy[propsKey];
+  return (a: Eloable) => {
+    const eloA = a[propsKey] as EloProps ?? dummy[propsKey];
 
-    const oddsAgainst = <B extends EloObject | Object>(b: B) => {
-      const eloB: Elo = (b as EloObject)[propsKey] ?? dummy[propsKey];
+    const oddsAgainst = (b: Eloable) => {
+      const eloB = b[propsKey] as EloProps ?? dummy[propsKey];
 
       const clamp = (value: number) => ({
         between: (lower: number, upper: number) =>
@@ -64,8 +62,8 @@ const elo = (config: Readonly<Partial<EloConfig>> = {}) => {
 
     const resolveMatch =
       (didAWin: number) =>
-      <B extends Readonly<EloObject | Object>>(b: B) => {
-        const eloB: Elo = (b as EloObject)[propsKey] ?? dummy[propsKey];
+      (b: Eloable) => {
+        const eloB = b[propsKey] as EloProps ?? dummy[propsKey];
 
         interface EloMeta {
           k: number;
@@ -73,20 +71,20 @@ const elo = (config: Readonly<Partial<EloConfig>> = {}) => {
           p: number;
         }
 
-        const metaA: Readonly<EloMeta> = {
+        const metaA = {
           k: kGenerator(eloA),
           didWin: didAWin,
           p: oddsAgainst(b),
         };
 
-        const metaB: Readonly<EloMeta> = {
+        const metaB = {
           k: kGenerator(eloB),
           didWin: 1 - didAWin,
           p: 1 - metaA.p,
         };
 
         const from = (
-          { rating: oldRating, matchCount }: Readonly<Elo>,
+          { rating: oldRating, matchCount }: Readonly<EloProps>,
           { k, didWin, p }: Readonly<EloMeta>,
           playedAt: number
         ) => {
@@ -109,7 +107,7 @@ const elo = (config: Readonly<Partial<EloConfig>> = {}) => {
       };
 
     const reset = () => {
-      const { [propsKey as keyof Object]: elo, ...cleanedA } = a;
+      const { [propsKey]: elo, ...cleanedA } = a;
 
       return cleanedA;
     };
@@ -124,92 +122,99 @@ const elo = (config: Readonly<Partial<EloConfig>> = {}) => {
   };
 };
 
-interface EloArray<T> extends Array<T> {
-  player?: Function;
-  pick?: Function;
-}
-
 export class Pool {
-  static #config: Readonly<Partial<EloConfig>> = defaultConfig;
+  static #config = defaultConfig;
 
   static config(config: Readonly<Partial<EloConfig>>) {
-    Pool.#config = config;
+    Pool.#config = complete(config);
 
     return Pool;
   }
 
-  static from<T extends EloObject | Object>(
-    iterable: EloArray<T>
-  ): Required<EloArray<T>> {
-    const { initialRating, propsKey } = full(this.#config);
+  static from(iterable: Eloable[]) {
+    const eloIterable = iterable as Eloable[] & {
+      player: Function;
+      pick: Function;
+    };
+
+    const { initialRating, propsKey } = complete(this.#config);
 
     const player = elo(this.#config);
 
-    const dummy = { [propsKey]: defaultElo(initialRating) };
+    const dummy = { [propsKey]: makeProps(initialRating) };
 
-    iterable.player = (indexA: keyof EloArray<T>) => {
-      const playerA = player(iterable[indexA] as EloObject);
+    eloIterable.player = (indexA: number) => {
+      const playerA = player(iterable[indexA]);
 
       const resolveMatch = (
-        indexB: keyof EloArray<T>,
-        resolver: keyof Omit<typeof playerA, "oddsAgainst" | "reset">
+        indexB: number,
+        resolver: "wins" | "ties" | "loses"
       ) => {
-        const [newA, newB] = playerA[resolver](iterable[indexB] as EloObject);
-        (iterable[indexA] as EloObject) = newA;
-        (iterable[indexB] as EloObject) = newB;
+        const [newA, newB] = playerA[resolver](iterable[indexB]);
+        iterable[indexA] = newA;
+        iterable[indexB] = newB;
 
         return iterable;
       };
 
       return {
-        wins: (indexB: keyof EloArray<T>) => resolveMatch(indexB, "wins"),
-        ties: (indexB: keyof EloArray<T>) => resolveMatch(indexB, "ties"),
-        loses: (indexB: keyof EloArray<T>) => resolveMatch(indexB, "loses"),
-        oddsAgainst: (indexB: keyof EloArray<T>): number => {
-          return playerA.oddsAgainst(iterable[indexB] as EloObject);
+        wins: (indexB: number) => resolveMatch(indexB, "wins"),
+        ties: (indexB: number) => resolveMatch(indexB, "ties"),
+        loses: (indexB: number) => resolveMatch(indexB, "loses"),
+        oddsAgainst: (indexB: number): number => {
+          return playerA.oddsAgainst(iterable[indexB]);
         },
         reset: () => {
-          (iterable[indexA as keyof EloArray<T>] as EloObject) =
-            playerA.reset();
+          iterable[indexA] = playerA.reset();
 
           return iterable;
         },
       };
     };
 
-    iterable.pick = (forcedMethod: string) => {
-      const methods = ["random", "matchCount", "lastPlayedAt"];
+    eloIterable.pick = (forcedMethod: string) => {
+      const length = [...iterable].length;
 
-      const pickRandom = (min: number, max: number) =>
-        min + Math.floor(Math.random() * (max - min + 1));
-
-      const method = forcedMethod ?? methods[pickRandom(0, methods.length - 1)];
-
-      if (iterable.length <= 1) {
+      if (length <= 1) {
         throw new Error("not enough players");
       }
 
-      if (iterable.length === 2) {
+      enum Method {
+        Random = "random", MatchCount = "matchCount", LastPlayedAt = "lastPlayedAt"
+      }
+
+      const randomMethod = () => {
+        const keys = Object.keys(Method);
+
+        return keys[Math.floor(Math.random() * keys.length)];
+      }
+
+      const method = forcedMethod ?? randomMethod();
+
+      if (length === 2) {
         return [0, 1, method]; // should be handled explicitly because of random option
       }
 
       switch (method) {
-        case "random": {
-          const i = pickRandom(0, iterable.length - 1);
-          const j = (i + pickRandom(1, iterable.length - 1)) % iterable.length;
+        case Method.Random: {
+          const pickRandom = (min: number, max: number) =>
+            min + Math.floor(Math.random() * (max - min + 1));
+
+          const i = pickRandom(0, length - 1);
+          const j = (i + pickRandom(1, length - 1)) % length;
 
           return [i, j, method];
         }
         default: {
-          const fromProp = (key: keyof Elo) =>
+          const fromProp = (key: keyof EloProps) =>
             iterable.reduce(
               (
                 [first, second, third]: Array<any>,
-                challenger: EloObject | Object,
+                challenger: Eloable,
                 index: number
               ) => {
                 const challengerStats =
-                  (challenger as EloObject)[propsKey] ?? dummy[propsKey];
+                  challenger[propsKey] as EloProps ?? dummy[propsKey];
 
                 if (challengerStats[key] < first[key]) {
                   return [{ index, ...challengerStats }, first, second];
@@ -226,7 +231,7 @@ export class Pool {
               [{ [key]: Infinity }, { [key]: Infinity }, { [key]: Infinity }]
             );
 
-          let [a, b, c] = fromProp(method as keyof Elo);
+          let [a, b, c] = fromProp(method as keyof EloProps);
 
           if (method === "matchCount" && a.lastPlayedAt === c.lastPlayedAt) {
             [c, b] = [b, c];
@@ -236,7 +241,7 @@ export class Pool {
       }
     };
 
-    return iterable as Required<EloArray<T>>;
+    return eloIterable;
   }
 }
 

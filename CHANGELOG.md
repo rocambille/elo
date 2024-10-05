@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Open an issue](https://github.com/rocambille/elo/issues/new) if you have any request/feedback :)
 
+## [2.1.7] - 2024-10-05
+
+### Fixed
+
+- Cleaned internal typing.
+
+- Updated dev dependencies.
+
 ## [2.1.6] - 2023-12-16
 
 ### Fixed
