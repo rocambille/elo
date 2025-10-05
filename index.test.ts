@@ -183,13 +183,7 @@ describe("10 rounds", () => {
           lastDelta: NaN,
           lastPlayedAt: NaN,
         },
-      })[
-        action as keyof {
-          wins: Function;
-          loses: Function;
-          ties: Function;
-        }
-      ]({
+      })[action as "wins" | "loses" | "ties"]({
         a: 42,
         elo: {
           rating: previousBarRating,
@@ -225,7 +219,7 @@ describe("10 rounds (using Pool)", () => {
         result: [new1stRating, new2ndRating],
       } = scenario[i];
 
-      let pool = Pool.from([
+      const pool = Pool.from([
         {
           a: 42,
           elo: {
@@ -246,24 +240,18 @@ describe("10 rounds (using Pool)", () => {
         },
       ])
         .player(0)
-        [
-          action as keyof {
-            wins: Function;
-            loses: Function;
-            ties: Function;
-          }
-        ](1);
+        [action as "wins" | "loses" | "ties"](1);
 
       expect(pool[0].elo.rating).toBeCloseTo(new1stRating);
       expect(pool[0].elo.lastDelta).toBeCloseTo(
-        new1stRating - previous1stRating
+        new1stRating - previous1stRating,
       );
       expect(pool[0].elo.lastPlayedAt).toBeDefined();
       expect(pool[0].elo.matchCount).toBe(i);
 
       expect(pool[1].elo.rating).toBeCloseTo(new2ndRating);
       expect(pool[1].elo.lastDelta).toBeCloseTo(
-        new2ndRating - previous2ndRating
+        new2ndRating - previous2ndRating,
       );
       expect(pool[1].elo.lastPlayedAt).toBeDefined();
       expect(pool[1].elo.matchCount).toBe(i);
@@ -350,12 +338,12 @@ describe("pool picking", () => {
     });
     test(`very small pool (length = 1, ${wantedMethod})`, () => {
       expect(() => Pool.from([{ a: 42 }]).pick(wantedMethod)).toThrow(
-        new Error("not enough players")
+        new Error("not enough players"),
       );
     });
     test(`empty pool (length = 0, ${wantedMethod})`, () => {
       expect(() => Pool.from([]).pick(wantedMethod)).toThrow(
-        new Error("not enough players")
+        new Error("not enough players"),
       );
     });
   });

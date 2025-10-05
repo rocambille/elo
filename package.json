@@ -31,14 +31,19 @@
     "url": "git+https://github.com/rocambille/elo.git"
   },
   "scripts": {
+    "prepare": "git config core.hooksPath .git-hooks || true",
+    "biome:check": "biome check --error-on-warnings .",
+    "biome:fix": "biome check --write --error-on-warnings .",
     "build": "tsc && mv ./dist/index.js ./dist/index.cjs && tsc -m es6 && mv ./dist/index.js ./dist/index.mjs",
     "prepublish": "npm run build",
-    "test": "npx jest"
+    "test": "npx jest",
+    "types:check": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/jest": "^29.5.13",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.2.5",
-    "typescript": "^5.6.2"
+    "@biomejs/biome": "2.2.5",
+    "@types/jest": "^30.0.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.4",
+    "typescript": "^5.9.3"
   }
 }

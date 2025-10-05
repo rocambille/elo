@@ -1,0 +1,5 @@
+#!/bin/sh
+
+npm run biome:check
+npm run types:check
+npm run test
